@@ -1,0 +1,24 @@
+{
+  "name": "books",
+  "version": "1.0.0",
+  "min_core_version": "0.1.0",
+  "type": "data-source",
+  "entrypoint": "run.py",
+  "permissions": ["documents.read", "storage.own"],
+  "title": "مكتبة الكتب",
+  "description": "مكتبة كتب دراسية يُربط بها خط RAG — اسأل كتابك يعمل على أي كتاب هنا.",
+  "ui": {
+    "type": "books-shelf",
+    "schema": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "author": {"type": "string"},
+          "pages": {"type": "integer"}
+        }
+      }
+    }
+  }
+}

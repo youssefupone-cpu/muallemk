@@ -1,0 +1,11 @@
+{
+  "name": "grades-tool",
+  "version": "1.0.0",
+  "min_core_version": "0.1.0",
+  "type": "tool",
+  "entrypoint": "run.py",
+  "permissions": ["storage.own"],
+  "title": "حاسبة الدرجات",
+  "description": "تحسب معدل درجاتك من قائمة (مادة/درجة) سريعاً.",
+  "ui": { "widget": "form", "fields": ["subject", "grade"], "button": "احسب المعدل" }
+}

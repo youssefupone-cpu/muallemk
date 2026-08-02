@@ -1,0 +1,23 @@
+{
+  "name": "study-table",
+  "version": "1.0.0",
+  "min_core_version": "0.1.0",
+  "type": "ui-page",
+  "permissions": ["storage.own"],
+  "title": "جدول الدراسة",
+  "description": "جدول أسبوعي (أيام/مواد/أوقات) مع تخزين معزول — صفحة كاملة من ملف البيانات فقط.",
+  "ui": {
+    "page": "study-table",
+    "schema": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "day": {"type": "string", "enum": ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"]},
+          "subject": {"type": "string"},
+          "time": {"type": "string"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "broken-plugin",
+  "version": "1.0.0",
+  "min_core_version": "0.1.0",
+  "type": "tool",
+  "entrypoint": "run.py",
+  "title": "إضافة مكسورة (اختبار العزل)",
+  "description": "ترمي خطأً دائماً — يجب أن تُعزل تلقائياً دون كسر النظام.",
+  "permissions": []
+}

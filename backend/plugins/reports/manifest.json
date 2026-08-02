@@ -1,0 +1,13 @@
+{
+  "name": "reports",
+  "version": "1.0.0",
+  "min_core_version": "0.1.0",
+  "type": "report",
+  "entrypoint": "run.py",
+  "permissions": ["storage.own"],
+  "title": "تقارير AI",
+  "description": "توليد تقارير أكاديمية عند الطلب: اختر موضوعاً ليُبنى ملخص منظم باستشهادات من كتبك، ثم حمّله Markdown.",
+  "ui": {
+    "type": "report-generator"
+  }
+}

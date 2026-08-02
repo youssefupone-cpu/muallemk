@@ -1,0 +1,37 @@
+services:
+  backend:
+    build: ./backend
+    container_name: muallemk-backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - muallemk-data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: muallemk-frontend
+    ports:
+      - "${FRONTEND_PORT:-3002}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: muallemk-ollama
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    restart: unless-stopped
+
+volumes:
+  muallemk-data:
+  ollama-models:
