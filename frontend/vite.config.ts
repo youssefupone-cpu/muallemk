@@ -1,10 +1,51 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import babel from '@rolldown/plugin-babel'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    // React Compiler (P1-5) — API v6 الموّثق في README @vitejs/plugin-react.
+    // v6 حذف خيار `babel` من react()؛ الآن: react() + babel({ presets: [reactCompilerPreset()] })
+    // (يتطلب @rolldown/plugin-babel@0.1.7 + babel-plugin-react-compiler + @babel/core@7.29.7).
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        runtimeCaching: [
+          // محاضرات/بيانات محلية ثابتة
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/books'),
+            handler: 'NetworkFirst',
+            options: { cacheName: 'books', expiration: { maxEntries: 50 } },
+          },
+          // RAG ask — fallback للشبكة
+          {
+            urlPattern: ({ url }) => url.pathname === '/api/rag/ask',
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
+      includeAssets: ["favicon.svg", "pwa-192x192.png", "pwa-512x512.png"],
+      manifest: {
+        name: 'معلّمك — مساعد الدراسة',
+        short_name: 'معلمك',
+        description: 'مساعد دراسة ذكي محلي بالذكاء الاصطناعي',
+        display: 'standalone',
+        background_color: '#f8fafc',
+        theme_color: '#0f172a',
+        icons: [
+          { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+        ],
+      },
+    }),
+  ],
   server: {
     host: '0.0.0.0',
     // المنفذان 3000/3001 مشغولان بخدمات أخرى على جهاز التطوير — ثبّتنا 3002.
@@ -15,6 +56,19 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
+  // Code-splitting إضافي — فصل vendor و shadcn/ui عن الـ chunks الخاصة بالصفحات (P4-240)
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@radix-ui/react-icons', '@radix-ui/react-label', 'clsx'],
+          editor: ['@tiptap/react', '@tiptap/starter-kit'],
+          charts: ['recharts'],
+        },
       },
     },
   },

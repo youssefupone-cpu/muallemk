@@ -19,6 +19,7 @@ export function ChatPage() {
     openConversation,
     newConversation,
     send,
+    stop,
     clearError,
   } = useChatStore()
 
@@ -51,7 +52,7 @@ export function ChatPage() {
       />
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-6">
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-6" aria-live="polite">
           <div className="mx-auto max-w-3xl space-y-4">
             {messages.length === 0 && !streaming && (
               <div className="mt-16 text-center">
@@ -78,7 +79,12 @@ export function ChatPage() {
           <div ref={bottomRef} />
         </div>
 
-        <ChatInput disabled={streaming} onSend={(t) => send(t, loadSettings())} />
+        <ChatInput
+          disabled={streaming}
+          onSend={(t) => send(t, loadSettings())}
+          onStop={streaming ? stop : undefined}
+          stopLabel="إيقاف"
+        />
       </main>
     </div>
   )

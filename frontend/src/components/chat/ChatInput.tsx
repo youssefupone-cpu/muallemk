@@ -1,14 +1,16 @@
 import { useState, type FormEvent } from 'react'
-import { Loader2, SendHorizonal } from 'lucide-react'
+import { Loader2, SendHorizonal, Square } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
 
 interface Props {
   disabled?: boolean
   onSend: (text: string) => void
+  onStop?: () => void
+  stopLabel?: string
 }
 
-export function ChatInput({ disabled, onSend }: Props) {
+export function ChatInput({ disabled, onSend, onStop, stopLabel = 'إيقاف' }: Props) {
   const [text, setText] = useState('')
 
   const submit = (e: FormEvent) => {
@@ -17,6 +19,10 @@ export function ChatInput({ disabled, onSend }: Props) {
     if (!trimmed || disabled) return
     onSend(trimmed)
     setText('')
+  }
+
+  const handleStop = () => {
+    onStop?.()
   }
 
   return (
@@ -38,13 +44,26 @@ export function ChatInput({ disabled, onSend }: Props) {
             'focus:border-indigo-500 focus:bg-white focus:outline-none',
           )}
         />
-        <button
-          type="submit"
-          disabled={disabled || !text.trim()}
-          className="flex size-11 items-center justify-center rounded-full bg-indigo-600 text-white transition hover:bg-indigo-700 disabled:opacity-40"
-        >
-          {disabled ? <Loader2 className="size-5 animate-spin" /> : <SendHorizonal className="size-5" />}
-        </button>
+        {disabled && onStop ? (
+          <button
+            type="button"
+            onClick={handleStop}
+            className="flex size-11 items-center justify-center rounded-full bg-red-600 text-white transition hover:bg-red-700"
+            title={stopLabel}
+            aria-label={stopLabel}
+          >
+            <Square className="size-5" />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={disabled || !text.trim()}
+            className="flex size-11 items-center justify-center rounded-full bg-indigo-600 text-white transition hover:bg-indigo-700 disabled:opacity-40"
+            aria-label="إرسال"
+          >
+            {disabled ? <Loader2 className="size-5 animate-spin" /> : <SendHorizonal className="size-5" />}
+          </button>
+        )}
       </div>
     </form>
   )

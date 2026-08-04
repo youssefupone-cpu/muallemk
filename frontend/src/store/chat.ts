@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 import { streamChat, type ChatEvent, type Conversation, type Message } from '../lib/api'
+import { errMsg, isAbortError } from '../lib/utils'
 
 interface ChatState {
   conversations: Conversation[]
@@ -8,10 +9,12 @@ interface ChatState {
   messages: Message[]
   streaming: boolean
   error: string | null
+  abortCtrl: AbortController | null
   setConversations: (c: Conversation[]) => void
   openConversation: (id: number, messages: Message[]) => void
   newConversation: () => void
   send: (text: string, settings: Parameters<typeof streamChat>[2]) => Promise<void>
+  stop: () => void
   clearError: () => void
 }
 
@@ -21,16 +24,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   streaming: false,
   error: null,
+  abortCtrl: null,
 
   setConversations: (c) => set({ conversations: c }),
   openConversation: (id, messages) => set({ currentId: id, messages, error: null }),
-  newConversation: () => set({ currentId: null, messages: [], error: null }),
+  newConversation: () => set({ currentId: null, messages: [], error: null, streaming: false }),
 
   clearError: () => set({ error: null }),
 
   send: async (text, settings) => {
     if (get().streaming) return
-    set({ streaming: true, error: null })
+    const controller = new AbortController()
+    set({ streaming: true, error: null, abortCtrl: controller })
 
     // رسالة المستخدم تظهر فوراً
     const userMsg: Message = {
@@ -76,11 +81,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
 
     try {
-      await streamChat(text, get().currentId, settings, onEvent)
+      await streamChat(text, get().currentId, settings, onEvent, controller.signal)
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : 'تعذّر الاتصال بالخادم' })
+      if (!isAbortError(err)) {
+        set({ error: errMsg(err) })
+      }
     } finally {
-      set({ streaming: false })
+      set({ streaming: false, abortCtrl: null })
     }
+  },
+
+  stop: () => {
+    const ctrl = get().abortCtrl
+    if (ctrl) ctrl.abort()
   },
 }))

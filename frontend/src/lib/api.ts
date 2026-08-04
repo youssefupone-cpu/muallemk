@@ -25,6 +25,46 @@ export interface Conversation {
   created_at: string;
 }
 
+/**
+ * قارئ SSE العام — يقرأ البث ويدعّ callback لكل خط `data: `.
+ * يرمي Error مع رسالة detail عند الاستجابات الخطأ (P4-202).
+ */
+export async function readSSE(
+  res: Response,
+  onEvent: (e: unknown) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  if (!res.ok) {
+    const detail =
+      (await res.json().catch(() => null))?.detail ?? `HTTP ${res.status}`;
+    throw new Error(detail);
+  }
+  if (!res.body) return;
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let idx: number;
+    while ((idx = buffer.indexOf("\n")) !== -1) {
+      const line = buffer.slice(0, idx).trim();
+      buffer = buffer.slice(idx + 1);
+      if (line.startsWith("data: ")) {
+        try {
+          onEvent(JSON.parse(line.slice(6)));
+        } catch (e) {
+          if (import.meta?.env?.DEV) console.warn("Malformed SSE line:", line, e);
+        }
+      }
+    }
+  }
+}
+
 export async function streamChat(
   message: string,
   conversationId: number | null,
@@ -34,14 +74,13 @@ export async function streamChat(
 ): Promise<void> {
   const res = await fetch("/api/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "x-provider-key": settings.apiKey || "" },
     body: JSON.stringify({
       message,
       conversation_id: conversationId,
       provider: settings.provider,
       model: settings.model,
       base_url: settings.provider === "custom" ? settings.baseUrl : undefined,
-      api_key: settings.apiKey || undefined,
     }),
     signal,
   });
@@ -52,24 +91,7 @@ export async function streamChat(
     throw new Error(detail);
   }
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    // فصل الأحداث: سطور تبدأ بـ "data: "
-    let idx: number;
-    while ((idx = buffer.indexOf("\n")) !== -1) {
-      const line = buffer.slice(0, idx).trim();
-      buffer = buffer.slice(idx + 1);
-      if (line.startsWith("data: ")) {
-        onEvent(JSON.parse(line.slice(6)) as ChatEvent);
-      }
-    }
-  }
+  await readSSE(res, (e) => onEvent(e as ChatEvent), signal);
 }
 
 export async function fetchHistory(): Promise<Conversation[]> {
@@ -138,14 +160,13 @@ export async function streamAsk(
 ): Promise<void> {
   const res = await fetch("/api/rag/ask", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "x-provider-key": settings.apiKey || "" },
     body: JSON.stringify({
       question,
       conversation_id: conversationId,
       provider: settings.provider,
       model: settings.model,
       base_url: settings.provider === "custom" ? settings.baseUrl : undefined,
-      api_key: settings.apiKey || undefined,
     }),
     signal,
   });
@@ -154,22 +175,8 @@ export async function streamAsk(
       (await res.json().catch(() => null))?.detail ?? `HTTP ${res.status}`;
     throw new Error(detail);
   }
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let idx: number;
-    while ((idx = buffer.indexOf("\n")) !== -1) {
-      const line = buffer.slice(0, idx).trim();
-      buffer = buffer.slice(idx + 1);
-      if (line.startsWith("data: ")) {
-        onEvent(JSON.parse(line.slice(6)) as AskEvent);
-      }
-    }
-  }
+
+  await readSSE(res, (e) => onEvent(e as AskEvent), signal);
 }
 
 export async function indexDocument(

@@ -1,5 +1,6 @@
 # Python
 backend/.venv/
+frontend/.venv/
 __pycache__/
 *.pyc
 .pytest_cache/
@@ -18,3 +19,12 @@ data/
 # نظام
 .DS_Store
 *.log
+
+# Internal / audit artifacts (not part of the project source)
+research/
+handoffs/
+superpowers/
+.codebase-memory/
+frontend/e2e/
+RESEARCH_FINDINGS_2026.md
+scripts/

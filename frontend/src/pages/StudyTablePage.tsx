@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 
 import { fetchPluginStorage, fetchPlugins, savePluginStorage, type PluginItem } from '../lib/api'
+import { errMsg } from '../lib/utils'
 
 interface FieldSpec {
   key: string
@@ -21,31 +23,37 @@ export function StudyTablePage() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
+  // React Query — تحميل قائمة الإضافات مع كاش (P4-240)
+  const qc = useQuery({
+    queryKey: ['plugins'],
+    queryFn: fetchPlugins,
+    staleTime: 1000 * 60 * 2,
+    retry: 2,
+  })
+
   useEffect(() => {
-    void (async () => {
-      try {
-        const plugins = await fetchPlugins()
-        const p = plugins.find((x) => x.name === 'study-table')
-        setPlugin(p ?? null)
-        if (p) {
-          const spec = (p as PluginUiItem).ui?.schema?.items?.properties
-          if (spec) {
-            setFields(
-              Object.entries(spec).map(([k, v]) => ({
-                key: k,
-                label: k === 'subject' ? 'المادة' : k === 'time' ? 'الوقت' : k,
-                enum: v.enum,
-              })),
-            )
-          }
-          const stored = await fetchPluginStorage('study-table')
-          setRows(stored.items ?? [])
+    if (qc.isError) setError(errMsg(qc.error))
+    if (qc.data) {
+      const plugins = qc.data
+      const p = plugins.find((x) => x.name === 'study-table') ?? null
+      setPlugin(p)
+      if (p) {
+        const spec = (p as PluginUiItem).ui?.schema?.items?.properties
+        if (spec) {
+          setFields(
+            Object.entries(spec).map(([k, v]) => ({
+              key: k,
+              label: k === 'subject' ? 'المادة' : k === 'time' ? 'الوقت' : k,
+              enum: v.enum,
+            })),
+          )
         }
-      } catch (e) {
-        setError((e as Error).message)
+        void fetchPluginStorage('study-table').then((stored) => {
+          setRows(stored.items ?? [])
+        }).catch((e) => setError(errMsg(e)))
       }
-    })()
-  }, [])
+    }
+  }, [qc.data, qc.isError, qc.error])
 
   const addRow = () => {
     if (!draft.day || !draft.subject) return
@@ -68,7 +76,7 @@ export function StudyTablePage() {
     try {
       await savePluginStorage('study-table', next)
     } catch (e) {
-      setError((e as Error).message)
+      setError(errMsg(e));
     } finally {
       setSaving(false)
     }

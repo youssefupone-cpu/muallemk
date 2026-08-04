@@ -2,17 +2,24 @@ services:
   backend:
     build: ./backend
     container_name: muallemk-backend
-    env_file:
-      - path: .env
-        required: false
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
+      - DATA_DIR=/app/data
+      - OLLAMA_EMBED_MODEL=nomic-embed-text
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ./backend/app:/app/app
       - muallemk-data:/app/data
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
 
   frontend:
     build: ./frontend
@@ -22,15 +29,31 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
 
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.3.12  # pinned — was :latest
     container_name: muallemk-ollama
     volumes:
       - ollama-models:/root/.ollama
     ports:
       - "${OLLAMA_PORT:-11434}:11434"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: "2.0"
+        reservations:
+          memory: 2G
+          cpus: "1.0"
 
 volumes:
   muallemk-data:

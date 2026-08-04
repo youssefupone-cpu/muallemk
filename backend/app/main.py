@@ -6,6 +6,7 @@
 
 from fastapi import FastAPI
 
+from app.books.router import router as books_router
 from app.chat.router import router as chat_router
 from app.core.config import get_settings
 from app.core.db import init_db
@@ -31,6 +32,7 @@ async def startup():
 
 
 app.include_router(chat_router)
+app.include_router(books_router)
 app.include_router(documents_router)
 app.include_router(rag_router)
 app.include_router(websearch_router)

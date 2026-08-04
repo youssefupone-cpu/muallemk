@@ -36,12 +36,14 @@ async def chat(request: ChatRequest):
     async def event_gen():
         try:
             async for event in chat_stream(request, llm):
-                yield {"event": "message", "data": json.dumps(event, ensure_ascii=False)}
-        except Exception as e:  # أي خطأ أثناء البث → حدث خطأ واضح
+                yield {"data": json.dumps(event, ensure_ascii=False)}
+        except Exception:  # أي خطأ أثناء البث → حدث خطأ واضح
             logger.exception("فشل بث الدردشة")
             yield {
-                "event": "message",
-                "data": json.dumps({"type": "error", "detail": str(e)}, ensure_ascii=False),
+                "data": json.dumps(
+                    {"type": "error", "detail": "خطأ في الخادم أثناء البث"},
+                    ensure_ascii=False,
+                ),
             }
 
     return EventSourceResponse(event_gen())

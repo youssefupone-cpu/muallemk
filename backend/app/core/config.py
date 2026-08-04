@@ -13,13 +13,14 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_name: str = "معلّمك"
-    host: str = "0.0.0.0"
+    host: str = "127.0.0.1"
     port: int = 8000
 
     # المزوّد الافتراضي (محلي أولاً)
     default_provider: str = "ollama"
     default_model: str = "gemma3:1b-it-qat"
     ollama_base_url: str = "http://localhost:11434"
+    rate_limit_per_minute: int = 60
 
     # RAG — تضمين محلي عبر Ollama (nomic-embed-text افتراضياً؛ يُمكن تجاوزه عبر .env)
     rag_embed_model: str = "nomic-embed-text"

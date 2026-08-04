@@ -2,14 +2,15 @@ import { Bot, User } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
 import type { Message } from '../../lib/api'
+import { MathRenderer } from '../MathRenderer'
 
 export function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user'
   return (
-    <div className={cn('flex gap-3', isUser ? 'justify-start' : 'justify-end')}>
-      {isUser && (
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200">
-          <User className="size-4 text-slate-600" />
+    <div className={cn('flex gap-3', isUser ? 'justify-end' : 'justify-start')} aria-live="polite">
+      {!isUser && (
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-600" aria-hidden="true">
+          <Bot className="size-4 text-white" aria-hidden="true" />
         </div>
       )}
       <div
@@ -18,11 +19,11 @@ export function ChatMessage({ message }: { message: Message }) {
           isUser ? 'bg-slate-200 text-slate-900' : 'bg-indigo-600 text-white',
         )}
       >
-        {message.content || '…'}
+        <MathRenderer content={message.content || '…'} isUser={isUser} />
       </div>
-      {!isUser && (
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-600">
-          <Bot className="size-4 text-white" />
+      {isUser && (
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200" aria-hidden="true">
+          <User className="size-4 text-slate-600" aria-hidden="true" />
         </div>
       )}
     </div>

@@ -41,6 +41,16 @@ SUPPORTED_EXTENSIONS = {
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"}
 
+# MIME types blocked for security (P4-240)
+BLOCKED_MIME = {
+    "text/html",
+    "application/xhtml+xml",
+    "application/x-executable",
+    "application/x-msdownload",
+    "application/x-bat",
+    "application/x-sh",
+}
+
 
 def _extension(filename: str) -> str:
     return Path(filename).suffix.lower()

@@ -29,5 +29,8 @@ async def search(req: WebSearchRequest):
     try:
         results = await get_provider().search(req.query, max_results=req.max_results)
     except RuntimeError as e:
-        raise HTTPException(status_code=503, detail=str(e)) from e
+        raise HTTPException(
+            status_code=503,
+            detail="خدمة البحث غير متاحة حالياً" if not e.args else str(e.args[0])[:200],
+        ) from e
     return WebSearchResponse(query=req.query, results=results)

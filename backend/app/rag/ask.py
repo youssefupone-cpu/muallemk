@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncIterator
 
+from app.core.config import get_settings
 from app.core.llm.base import BaseLLM
 from app.rag.engine import RAGEngine
 from app.rag.models import RetrievedChunk
@@ -41,13 +42,15 @@ async def ask_stream(
     llm: BaseLLM,
     engine: RAGEngine,
     question: str,
-    top_k: int = 6,
+    top_k: int | None = None,
     reranker: OllamaReranker | None = None,
 ) -> AsyncIterator[dict]:
     """يبث أحداث إجابة RAG: {sources} ثم {delta...} ثم {done بكل شيء}."""
-    chunks = await engine.query(question, top_k=top_k)
+    settings = get_settings()
+    effective_top_k = top_k or settings.rag_top_k
+    chunks = await engine.query(question, top_k=effective_top_k)
     if reranker:
-        chunks = await reranker.rerank(question, chunks, top_k=top_k)
+        chunks = await reranker.rerank(question, chunks, top_k=effective_top_k)
 
     sources = [
         RetrievedChunk(

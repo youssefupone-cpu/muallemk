@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
   fetchDocuments,
@@ -11,9 +12,9 @@ import {
   type RAGSource,
 } from '../lib/api'
 import { loadSettings } from '../lib/settings'
+import { errMsg, isAbortError } from '../lib/utils'
 
 export function DocumentsPage() {
-  const [docs, setDocs] = useState<DocumentItem[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
   const [indexing, setIndexing] = useState<Record<number, boolean>>({})
@@ -25,17 +26,17 @@ export function DocumentsPage() {
   const [sources, setSources] = useState<RAGSource[]>([])
   const abortRef = useRef<AbortController | null>(null)
 
-  const load = async () => {
-    try {
-      setDocs(await fetchDocuments())
-    } catch (e) {
-      setError((e as Error).message)
-    }
-  }
+  // React Query — تحميل المستندات مع كاش (P4-240)
+  const qc = useQuery({
+    queryKey: ['documents'],
+    queryFn: fetchDocuments,
+    staleTime: 1000 * 60 * 2,
+    retry: 2,
+  })
 
-  useEffect(() => {
-    void load()
-  }, [])
+  const docs = qc.data ?? []
+  useEffect(() => { if (qc.isError) setError(errMsg(qc.error)) }, [qc.isError, qc.error])
+  const invalidate = () => { void qc.refetch() }
 
   const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -44,9 +45,9 @@ export function DocumentsPage() {
     setError('')
     try {
       await uploadDocument(file)
-      await load()
+      invalidate()
     } catch (err) {
-      setError((err as Error).message)
+      setError(errMsg(err))
     } finally {
       setBusy('')
       e.target.value = ''
@@ -58,10 +59,10 @@ export function DocumentsPage() {
     setError('')
     try {
       const r = await indexDocument(id)
-      setDocs(await fetchDocuments())
+      invalidate()
       if (import.meta.env.DEV) console.info(`indexed ${r.indexed} chunks`)
     } catch (err) {
-      setError((err as Error).message)
+      setError(errMsg(err))
     } finally {
       setIndexing((s) => ({ ...s, [id]: false }))
     }
@@ -91,7 +92,9 @@ export function DocumentsPage() {
         }
       }, abortRef.current.signal)
     } catch (err) {
-      if ((err as Error).name !== 'AbortError') setError((err as Error).message)
+      if (!isAbortError(err)) {
+        setError(errMsg(err))
+      }
     } finally {
       setAskState('idle')
     }

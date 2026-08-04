@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   disablePlugin,
@@ -11,6 +12,7 @@ import {
   type GeneratedReport,
   type PluginItem,
 } from "../lib/api";
+import { errMsg } from "../lib/utils";
 
 const STATUS_LABEL: Record<string, string> = {
   detected: "مكتشفة",
@@ -23,7 +25,6 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export function PluginsPage() {
-  const [plugins, setPlugins] = useState<PluginItem[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [result, setResult] = useState<string>("");
@@ -31,26 +32,30 @@ export function PluginsPage() {
   const [reportTopic, setReportTopic] = useState("");
   const [report, setReport] = useState<GeneratedReport | null>(null);
 
-  const load = async () => {
-    try {
-      setPlugins(await fetchPlugins());
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
+  // React Query — تحميل القائمة مع كاش (P4-240)
+  const qc = useQuery({
+    queryKey: ["plugins"],
+    queryFn: fetchPlugins,
+    staleTime: 1000 * 60 * 2,
+    retry: 2,
+  });
+
+  const plugins = qc.data ?? [];
 
   useEffect(() => {
-    void load();
-  }, []);
+    if (qc.isError) setError(errMsg(qc.error));
+  }, [qc.isError, qc.error]);
+
+  const invalidate = () => qc.refetch();
 
   const act = async (name: string, fn: () => Promise<unknown>) => {
     setBusy(name);
     setError("");
     try {
       await fn();
-      await load();
+      await invalidate();
     } catch (e) {
-      setError((e as Error).message);
+      setError(errMsg(e));
     } finally {
       setBusy("");
     }
@@ -72,7 +77,7 @@ export function PluginsPage() {
         `المعدل: ${r.result.average} (من ${r.result.count} مادة، الأعلى ${r.result.max})`,
       );
     } catch (e) {
-      setError((e as Error).message);
+      setError(errMsg(e));
     } finally {
       setBusy("");
     }
@@ -254,7 +259,7 @@ export function PluginsPage() {
                             ),
                           );
                         } catch (e) {
-                          setError((e as Error).message);
+                          setError(errMsg(e));
                         } finally {
                           setBusy("");
                         }

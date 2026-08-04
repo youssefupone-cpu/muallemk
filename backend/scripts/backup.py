@@ -70,9 +70,26 @@ def restore_backup(archive_path: str | Path, data_dir: str | Path) -> Path:
     if DB_FILENAME not in names:
         raise ValueError(f"الأرشيف لا يحوي {DB_FILENAME}")
 
+    # --- Zip Slip protection ---
+    # التحقق من أن مسارات الملفات داخل الأرشيف لا تتجاوز مجلد البيانات المستهدف.
+    import os
+
+    data_dir_resolved = dst.resolve()
+
+    def _is_safe(member_path: str) -> bool:
+        """True إذا كان المسار آمنًا (لا يحتوي على .. أو مسار مطلق)."""
+        target = (dst / member_path).resolve()
+        return (
+            str(target).startswith(str(data_dir_resolved) + os.sep) or target == data_dir_resolved
+        )
+
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
         with zipfile.ZipFile(arc) as zf:
+            # استخراج آمن — فحص كل مسار قبل الاستخراج
+            for member in zf.namelist():
+                if not _is_safe(member):
+                    raise ValueError(f"مسار غير آمن في الأرشيف (Zip Slip): {member}")
             zf.extractall(tmp_dir)
 
         db_tmp = tmp_dir / DB_FILENAME
