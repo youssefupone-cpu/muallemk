@@ -41,7 +41,7 @@ function expectedText(item: QuizBankItem): string {
       : item.answer;
 }
 
-export function ExamPage() {
+export default function ExamPage() {
   const [bookId, setBookId] = useState<number | "">("");
   const [phase, setPhase] = useState<Phase>("pick");
   const [qa, setQa] = useState<QA[]>([]);

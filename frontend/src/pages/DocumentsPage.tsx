@@ -14,7 +14,7 @@ import {
 import { loadSettings } from '../lib/settings'
 import { errMsg, isAbortError } from '../lib/utils'
 
-export function DocumentsPage() {
+export default function DocumentsPage() {
   const [error, setError] = useState('')
   const [indexing, setIndexing] = useState<Record<number, boolean>>({})
   const settings = loadSettings()

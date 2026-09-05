@@ -1,7 +1,7 @@
 import { AppLayout } from '../components/layout/AppLayout'
 import { SettingsPanel } from '../components/settings/SettingsPanel'
 
-export function SettingsPage() {
+export default function SettingsPage() {
   return (
     <AppLayout>
       <div className="mx-auto max-w-2xl p-6">

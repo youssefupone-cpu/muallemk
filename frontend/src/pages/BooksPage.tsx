@@ -197,7 +197,7 @@ function ExerciseRenderer({ e, i }: { e: Record<string, unknown>; i: number }) {
   );
 }
 
-export function BooksPage() {
+export default function BooksPage() {
   const [selected, setSelected] = useState<BookDetail | null>(null);
   const [lesson, setLesson] = useState<LessonContent | null>(null);
   const [error, setError] = useState("");

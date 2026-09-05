@@ -20,7 +20,7 @@ const sanitizeSchema = {
  * MathRenderer — react-markdown + KaTeX + sanitize (P3-115/P4-242).
  * CSS لـ KaTeX يُستورد مرة واحدة من index.css.
  */
-export const MathRenderer = ({ content }: { content: string }) => (
+export const MathRenderer = ({ content, isUser: _isUser }: { content: string; isUser?: boolean }) => (
   <ReactMarkdown
     remarkPlugins={[remarkMath]}
     rehypePlugins={[rehypeKatex, [rehypeSanitize, sanitizeSchema]]}

@@ -31,7 +31,7 @@ function expectedText(item: QuizBankItem): string {
   return item.answer;
 }
 
-export function DiagnosticPage() {
+export default function DiagnosticPage() {
   const [bookId, setBookId] = useState<number | "">("");
   const [rows, setRows] = useState<Row[]>([]);
   const [idx, setIdx] = useState(0);
