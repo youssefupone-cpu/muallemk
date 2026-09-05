@@ -6,12 +6,23 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
       - DATA_DIR=/app/data
       - OLLAMA_EMBED_MODEL=nomic-embed-text
+      - HOST=0.0.0.0
+      # مفاتيح API اختيارية — مرّرها عبر متغيرات البيئة لا عبر env_file كامل
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - ./backend/app:/app/app
       - muallemk-data:/app/data
     restart: unless-stopped
+    depends_on:
+      - ollama
     deploy:
       resources:
         limits:
@@ -39,7 +50,7 @@ services:
           cpus: "0.25"
 
   ollama:
-    image: ollama/ollama:0.3.12  # pinned — was :latest
+    image: ollama/ollama:0.3.12
     container_name: muallemk-ollama
     volumes:
       - ollama-models:/root/.ollama

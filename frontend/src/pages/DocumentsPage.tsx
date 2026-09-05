@@ -2,21 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { DragDropUpload } from '../components/DragDropUpload'
+import { AppLayout } from '../components/layout/AppLayout'
 import {
   fetchDocuments,
   indexDocument,
   streamAsk,
-  uploadDocument,
   type AskEvent,
-  type DocumentItem,
   type RAGSource,
 } from '../lib/api'
 import { loadSettings } from '../lib/settings'
 import { errMsg, isAbortError } from '../lib/utils'
 
-export function DocumentsPage() {
+export default function DocumentsPage() {
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState('')
   const [indexing, setIndexing] = useState<Record<number, boolean>>({})
   const settings = loadSettings()
 
@@ -33,26 +32,11 @@ export function DocumentsPage() {
     staleTime: 1000 * 60 * 2,
     retry: 2,
   })
+  const queryClient = useQueryClient()
 
   const docs = qc.data ?? []
   useEffect(() => { if (qc.isError) setError(errMsg(qc.error)) }, [qc.isError, qc.error])
-  const invalidate = () => { void qc.refetch() }
-
-  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setBusy('upload')
-    setError('')
-    try {
-      await uploadDocument(file)
-      invalidate()
-    } catch (err) {
-      setError(errMsg(err))
-    } finally {
-      setBusy('')
-      e.target.value = ''
-    }
-  }
+  const invalidate = () => { void queryClient.invalidateQueries({ queryKey: ['documents'] }) }
 
   const onIndex = async (id: number) => {
     setIndexing((s) => ({ ...s, [id]: true }))
@@ -101,28 +85,23 @@ export function DocumentsPage() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-50 text-slate-900">
+    <AppLayout>
       <div className="mx-auto max-w-4xl p-6">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold">مستنداتي</h1>
-          <div className="flex gap-2">
-            <Link to="/" className="rounded-lg bg-slate-200 px-4 py-2 text-sm hover:bg-slate-300">
-              المحادثة
-            </Link>
-            <Link to="/documents" className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
-              مستنداتي
-            </Link>
-            <Link to="/plugins" className="rounded-lg bg-slate-200 px-4 py-2 text-sm hover:bg-slate-300">
-              الإضافات
-            </Link>
-          </div>
+          <Link to="/" className="rounded-lg bg-slate-200 px-4 py-2 text-sm hover:bg-slate-300 dark:bg-slate-800">
+            المحادثة
+          </Link>
         </div>
 
         {error && <div className="mb-4 rounded-lg bg-red-100 p-3 text-sm text-red-800">{error}</div>}
 
-        <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <label className="block text-sm font-medium text-slate-700">رفع ملف (PDF/Word/نص/صورة OCR)</label>
-          <input type="file" onChange={onUpload} disabled={busy === 'upload'} className="mt-2 block w-full text-sm" />
+        <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <DragDropUpload
+            onUploaded={() => invalidate()}
+            onError={(msg) => setError(msg)}
+            maxSize={50 * 1024 * 1024}
+          />
         </div>
 
         <div className="space-y-3">
@@ -184,6 +163,6 @@ export function DocumentsPage() {
           )}
         </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }

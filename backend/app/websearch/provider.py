@@ -76,7 +76,9 @@ class WebSearchProvider:
             return cached[:max_results]
 
         results: list[dict] = []
-        if _HAVE_TAVILY and self.tavily_api_key:
+        # نفضّل Tavily إن وُجد مفتاح — حتى لو الحزمة غير مثبتة (يُستدعى _search_tavily
+        # وقد يُستبدل في الاختبارات). الحزمة تُفحص داخل _search_tavily الفعلي.
+        if self.tavily_api_key:
             try:
                 results = await self._search_tavily(query, max_results)
             except Exception as e:
@@ -93,6 +95,8 @@ class WebSearchProvider:
         return results[:max_results]
 
     async def _search_tavily(self, query: str, max_results: int) -> list[dict]:
+        if not _HAVE_TAVILY or TavilyClient is None:
+            raise RuntimeError("tavily-python غير مثبت — pip install tavily-python")
         client = TavilyClient(api_key=self.tavily_api_key)
         resp = await asyncio.to_thread(client.search, query=query, max_results=max_results)
         return [

@@ -4,6 +4,8 @@
 (chat, documents, rag, websearch, plugins).
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.books.router import router as books_router
@@ -17,18 +19,21 @@ from app.websearch.router import router as websearch_router
 
 settings = get_settings()
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    yield
+
+
 app = FastAPI(
     title=settings.app_name,
-    version="0.1.0",
+    version="0.2.0",
     description="مساعد دراسة ذكي — محلي أولاً، مع دعم كل مزوّدي LLM.",
     docs_url="/docs",
     redoc_url=None,
+    lifespan=lifespan,
 )
-
-
-@app.on_event("startup")
-async def startup():
-    init_db()
 
 
 app.include_router(chat_router)
@@ -47,4 +52,4 @@ async def root():
 @app.get("/health", tags=["system"])
 async def health():
     """فحص صحة الخدمة."""
-    return {"status": "ok", "app": settings.app_name, "version": "0.1.0"}
+    return {"status": "ok", "app": settings.app_name, "version": "0.2.0"}

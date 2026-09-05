@@ -3,7 +3,7 @@
 - **التاريخ**: 2026-08-04
 - **النوع**: bug (security / Docker)
 - **الوضعية**: reviewer
-- **الحالة**: open
+- **الحالة**: fixed
 - **الأولوية**: high
 - **الملفات المتأثرة**: `backend/Dockerfile`, `frontend/Dockerfile`, `docker-compose.yml`
 
@@ -75,3 +75,6 @@ services:
 
 - [Docker: Best practices for writing Dockerfiles — Run as non-root](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
 - [OWASP: Docker Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html)
+
+## سجل
+- 2026-09-05: حُدّثت الحالة إلى `fixed` بعد إصلاح شامل في جلسة Arena.

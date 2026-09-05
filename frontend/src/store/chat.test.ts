@@ -22,7 +22,7 @@ describe("useChatStore", () => {
   it("يدير تدفق الدردشة (start → delta → done)", async () => {
     vi.mocked(api.streamChat).mockImplementation(
       async (_text, _id, _settings, onEvent) => {
-        await onEvent({ type: "start" });
+        await onEvent({ type: "conversation", id: 1 });
         await onEvent({ type: "delta", content: "مرحبا" });
         await onEvent({ type: "delta", content: " بك" });
         await onEvent({ type: "done", content: "مرحبا بك", message_id: 1 });

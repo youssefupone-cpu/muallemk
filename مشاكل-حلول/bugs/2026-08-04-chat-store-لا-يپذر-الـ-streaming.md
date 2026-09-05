@@ -3,7 +3,7 @@
 - **التاريخ**: 2026-08-04
 - **النوع**: bug (frontend / UX / resource-leak)
 - **الوضعية**: matching
-- **الحالة**: open
+- **الحالة**: fixed
 - **الأولوية**: medium
 - **الملف المتأثر**: `frontend/src/store/chat.ts`, `frontend/src/pages/ChatPage.tsx`
 
@@ -110,3 +110,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
 - [MDN: AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
 - [FastAPI: StreamingResponse with cancellation](https://fastapi.tiangolo.com/advanced/custom-response/#streamingresponse)
+
+## سجل
+- 2026-09-05: حُدّثت الحالة إلى `fixed` بعد إصلاح شامل في جلسة Arena.

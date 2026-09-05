@@ -10,7 +10,6 @@ import {
   indexPluginForRag,
   invokePlugin,
   type GeneratedReport,
-  type PluginItem,
 } from "../lib/api";
 import { errMsg } from "../lib/utils";
 
@@ -24,7 +23,7 @@ const STATUS_LABEL: Record<string, string> = {
   error: "خطأ",
 };
 
-export function PluginsPage() {
+export default function PluginsPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [result, setResult] = useState<string>("");
