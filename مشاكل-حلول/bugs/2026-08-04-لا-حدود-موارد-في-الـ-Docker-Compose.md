@@ -3,7 +3,7 @@
 - **التاريخ**: 2026-08-04
 - **النوع**: bug (security / Docker / DoS)
 - **الوضعية**: reviewer
-- **الحالة**: open
+- **الحالة**: fixed
 - **الأولوية**: high
 - **الملف**: `docker-compose.yml`
 
@@ -95,3 +95,6 @@ services:
 
 - [Compose: الخصائص resources](https://docs.docker.com/compose/how-tos/deploy-resource-constraints/)
 - [Docker: Resource constraints cheet sheet](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-resource-constraints)
+
+## سجل
+- 2026-09-05: حُدّثت الحالة إلى `fixed` بعد إصلاح شامل في جلسة Arena.

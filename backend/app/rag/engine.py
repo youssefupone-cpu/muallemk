@@ -11,8 +11,12 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import lancedb
-import pyarrow as pa
+try:
+    import lancedb
+    import pyarrow as pa
+except ImportError:  # optional at install — يُثبَّت عبر extras[rag]
+    lancedb = None  # type: ignore[assignment]
+    pa = None  # type: ignore[assignment]
 
 from app.rag.chunker import chunk_index_text
 from app.rag.embeddings import BaseEmbedder, OllamaEmbedder

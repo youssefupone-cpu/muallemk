@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -11,6 +12,19 @@
       rel="stylesheet"
     />
     <title>معلّمك — مساعد الدراسة</title>
+    <!-- Zero-FOUC theme bootstrap (P4-239) — قبل أي CSS/React -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark;
+          if (stored === 'dark') dark = true;
+          else if (stored === 'light') dark = false;
+          else dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) { /* ignore */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

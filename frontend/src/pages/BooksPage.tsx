@@ -40,13 +40,17 @@ const STATUS_LABEL: Record<string, string> = {
 function Flashcards({ lesson }: { lesson: LessonContent }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const cards = useMemo(
-    () => [
-      ...lesson.glossary.map((g) => ({ front: g.term, back: g.definition })),
-      ...lesson.questions.map((q) => ({ front: q.question, back: q.answer })),
-    ],
-    [lesson],
-  );
+  const cards = useMemo(() => {
+    const fromGlossary = lesson.glossary.map((g) => ({
+      front: String(g.term ?? ""),
+      back: String(g.definition ?? ""),
+    }));
+    const fromQuestions = lesson.questions.map((q) => ({
+      front: String(q.question ?? ""),
+      back: String(q.answer ?? ""),
+    }));
+    return [...fromGlossary, ...fromQuestions].filter((c) => c.front);
+  }, [lesson]);
   if (cards.length === 0) return null;
   const card = cards[index % cards.length];
   return (
@@ -656,10 +660,10 @@ export function BooksPage() {
                       className="rounded-lg border border-blue-100 bg-blue-50/50 p-3"
                     >
                       <div className="font-semibold text-blue-700">
-                        {g.term}
+                        {String(g.term ?? "")}
                       </div>
                       <div className="mt-1 text-sm text-slate-600">
-                        {g.definition}
+                        {String(g.definition ?? "")}
                       </div>
                     </div>
                   ))}

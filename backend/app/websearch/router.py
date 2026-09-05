@@ -1,8 +1,9 @@
 """مسارات البحث على الويب (م8)."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.config import get_settings
+from app.core.rate_limit import rate_limiter
 from app.websearch.models import WebSearchRequest, WebSearchResponse
 from app.websearch.provider import WebSearchProvider
 
@@ -23,7 +24,10 @@ def get_provider() -> WebSearchProvider:
 
 
 @router.post("/search", response_model=WebSearchResponse)
-async def search(req: WebSearchRequest):
+async def search(
+    req: WebSearchRequest,
+    _: None = Depends(rate_limiter(10)),  # Tavily/SearXNG — حد 10 طلبات/دقيقة
+):
     if not req.query.strip():
         raise HTTPException(status_code=422, detail="الاستعلام فارغ")
     try:

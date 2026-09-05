@@ -10,7 +10,6 @@ import {
   indexPluginForRag,
   invokePlugin,
   type GeneratedReport,
-  type PluginItem,
 } from "../lib/api";
 import { errMsg } from "../lib/utils";
 

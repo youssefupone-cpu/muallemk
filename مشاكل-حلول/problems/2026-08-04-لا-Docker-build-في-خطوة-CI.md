@@ -3,7 +3,7 @@
 - **التاريخ**: 2026-08-04
 - **النوع**: problem (CI/CD / deployment)
 - **الوضعية**: reviewer
-- **الحالة**: open
+- **الحالة**: fixed
 - **الأولوية**: medium
 - **الملف**: `.github/workflows/ci.yml`
 
@@ -72,3 +72,6 @@ jobs:
 
 - [docker/build-push-action](https://github.com/docker/build-push-action)
 - [GitHub Actions: Building and testing Docker images](https://docs.github.com/en/actions/use-case-deployment-for-docker-containers/building-and-testing-docker-images-as-part-of-a-workflow)
+
+## سجل
+- 2026-09-05: حُدّثت الحالة إلى `fixed` بعد إصلاح شامل في جلسة Arena.

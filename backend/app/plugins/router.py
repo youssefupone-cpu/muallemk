@@ -6,12 +6,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from httpx import HTTPStatusError, RequestError
 
 from app.core.config import get_settings
 from app.core.db import get_connection
 from app.core.llm.factory import get_llm
+from app.core.rate_limit import rate_limiter
 from app.plugins.manager import Plugin, discover_plugins
 from app.plugins.report import ReportRequest, generate_report
 from app.rag.embeddings import OllamaEmbedder
@@ -22,6 +23,38 @@ router = APIRouter(prefix="/plugins", tags=["plugins"])
 
 # مجلد افتراضي: <backend>/plugins (يُستبدل من الإعدادات في real wiring)
 plugins_cache: list[Plugin] = []
+
+
+# إجراءات مسموحة لكل نوع إضافة — يُفرض في /invoke (منع kwargs اعتباطية)
+_ALLOWED_ACTIONS: dict[str, set[str] | None] = {
+    "tool": None,  # None = لا action إلزامي (مثل grades-tool يأخذ grades مباشرة)
+    "data-source": {"list", "add", "for-rag"},
+    "report": {"list", "save", "open", "delete"},
+    "ui-page": set(),  # لا invoke لصفحات UI
+}
+
+
+def _enforce_invoke(p: Plugin, body: dict | None) -> dict:
+    """يفرض مخطط استدعاء آمناً قبل تمرير kwargs للإضافة."""
+    payload = dict(body or {})
+    ptype = str(p.info.type.value if hasattr(p.info.type, "value") else p.info.type)
+    allowed = _ALLOWED_ACTIONS.get(ptype)
+    if allowed is not None:
+        if not allowed:
+            raise HTTPException(status_code=403, detail="هذه الإضافة لا تدعم الاستدعاء المباشر")
+        action = payload.get("action")
+        if action is None:
+            # افتراضي list إن غاب
+            payload["action"] = "list"
+            action = "list"
+        if action not in allowed:
+            raise HTTPException(
+                status_code=403,
+                detail=f"إجراء غير مسموح: {action} — المسموح: {sorted(allowed)}",
+            )
+    # لا نمرّر مفاتيح غير معروفة تتجاوز سطح الاستدعاء
+    # للإضافات من نوع tool: نسمح فقط بمفاتيح معلنة في body (grades وغيرها)
+    return payload
 
 
 def get_plugins() -> list[Plugin]:
@@ -120,15 +153,21 @@ async def index_plugin_for_rag(name: str):
 
 
 @router.post("/{name}/invoke")
-async def invoke_plugin(name: str, body: dict | None = None):
+async def invoke_plugin(
+    name: str,
+    body: dict | None = None,
+    _: None = Depends(rate_limiter(30)),
+):
     """ينفّذ إجراءً داخل الإضافة (عزل زمني عبر Plugin.run).
 
     عند الفشل (ERROR/DISABLED) نُرفق `last_error` حتى يرى المستخدم السبب
-    في الاستجابة مباشرة بدلاً من `result: null, status: error` بلا شرح."""
+    في الاستجابة مباشرة بدلاً من `result: null, status: error` بلا شرح.
+    يُفرض مخطط الإجراءات المسموحة حسب نوع الإضافة قبل التنفيذ."""
     p = _find(name)
     if not p.enabled:
         p.load_module()
-    result = await p.run(**(body or {}))
+    safe_body = _enforce_invoke(p, body)
+    result = await p.run(**safe_body)
     resp: dict = {"name": name, "result": result, "status": p.info.status}
     if p.info.status in ("error", "disabled"):
         resp["error"] = p.info.last_error
@@ -136,7 +175,12 @@ async def invoke_plugin(name: str, body: dict | None = None):
 
 
 @router.post("/{name}/report")
-async def generate_report_endpoint(name: str, req: ReportRequest):
+async def generate_report_endpoint(
+    name: str,
+    req: ReportRequest,
+    x_provider_key: str | None = Header(default=None, alias="x-provider-key"),
+    _: None = Depends(rate_limiter(5)),
+):
     """م9.3 — يولّد تقريراً أكاديمياً عند الطلب من إضافة نوع report.
 
     يسترجع مادة الموضوع من RAG ثم يطلب النموذج كتابة تقرير Markdown
@@ -152,10 +196,11 @@ async def generate_report_endpoint(name: str, req: ReportRequest):
         p.load_module()
 
     settings = get_settings()
+    api_key = x_provider_key or req.api_key
     llm = get_llm(
         provider=req.provider or settings.default_provider,
         model=req.model or settings.default_model,
-        api_key=req.api_key,
+        api_key=api_key,
         base_url=req.base_url or settings.ollama_base_url,
     )
     engine = RAGEngine(

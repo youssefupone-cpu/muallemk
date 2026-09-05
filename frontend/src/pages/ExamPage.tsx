@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppLayout } from "../components/layout/AppLayout";
@@ -6,7 +6,6 @@ import {
   fetchBooks,
   fetchQuiz,
   submitQuizAttempt,
-  type BookItem,
   type QuizBankItem,
 } from "../lib/api";
 import { errMsg } from "../lib/utils";
@@ -61,7 +60,9 @@ export function ExamPage() {
   });
 
   const books = qc.data ?? [];
-  if (qc.isError) setError(errMsg(qc.error));
+  useEffect(() => {
+    if (qc.isError) setError(errMsg(qc.error));
+  }, [qc.isError, qc.error]);
 
   const startExam = useCallback(async () => {
     if (!bookId) return;

@@ -2,7 +2,7 @@
 
 import json
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from httpx import HTTPStatusError, RequestError
 
@@ -15,6 +15,7 @@ from app.chat.service import (
 from app.core.config import get_settings
 from app.core.db import get_connection
 from app.core.llm.factory import get_llm
+from app.core.rate_limit import rate_limiter
 from app.rag.ask import ask_stream
 from app.rag.embeddings import OllamaEmbedder
 from app.rag.engine import RAGEngine
@@ -97,10 +98,6 @@ async def query(req: RAGQueryRequest):
         question=req.question,
         chunks=[RetrievedChunk(**c) for c in chunks],
     )
-    return RAGQueryResponse(
-        question=req.question,
-        chunks=[RetrievedChunk(**c) for c in chunks],
-    )
 
 
 @router.delete("/document/{doc_id}")
@@ -110,16 +107,21 @@ async def drop_document(doc_id: int):
 
 
 @router.post("/ask")
-async def ask(req: RAGAskRequest):
+async def ask(
+    req: RAGAskRequest,
+    x_provider_key: str | None = Header(default=None, alias="x-provider-key"),
+    _: None = Depends(rate_limiter(15)),  # استهلاك LLM + تضمين — حد 15/دقيقة
+):
     """ "اسأل كتابك": سؤال + مقتطفات مفهرسة + رد بثي مع استشهادات (م7)."""
     if not req.question.strip():
         raise HTTPException(status_code=422, detail="السؤال فارغ")
 
     settings = get_settings()
+    api_key = x_provider_key or req.api_key
     llm = get_llm(
         provider=req.provider or settings.default_provider,
         model=req.model or settings.default_model,
-        api_key=req.api_key,
+        api_key=api_key,
         base_url=req.base_url or settings.ollama_base_url,
     )
     reranker = OllamaReranker(base_url=settings.ollama_base_url)
