@@ -1,5 +1,17 @@
 import { useEffect, useState } from "react";
 
+/** معرّف نوع لحدث Chrome beforeinstallprompt (غير موجود في lib DOM الافتراضي) */
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+declare global {
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
+
 /**
  * PWA Install Prompt (P4-240)
  *

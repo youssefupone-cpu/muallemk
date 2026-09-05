@@ -43,12 +43,15 @@ export function DragDropUpload({
     if (acceptedFiles.length === 0) return;
 
     setRejected([]);
+    let count = 0;
     try {
-      const uploaded = await uploadDocument(acceptedFiles, (pct) => {
-        toast(`جارٍ الرفع… ${pct}%`, { id: "upload-progress" });
-      });
-      toast.success(`تم رفع ${uploaded.length} ملف بنجاح`);
-      onUploaded(uploaded.length);
+      for (const file of acceptedFiles) {
+        toast(`جارٍ رفع ${file.name}…`, { id: "upload-progress" });
+        await uploadDocument(file);
+        count++;
+      }
+      toast.success(`تم رفع ${count} ملف بنجاح`);
+      onUploaded(count);
     } catch (err) {
       toast.error(errMsg(err));
       onError?.(errMsg(err));
@@ -62,11 +65,11 @@ export function DragDropUpload({
     isDragAccept,
     isDragReject,
   } = useDropzone({
-    onDrop: onDrop,
+    onDrop,
     accept,
     maxFiles,
     maxSize,
-    onDropRejected: (rej) => setRejected(rej),
+    onDropRejected: (rej: FileRejection[]) => setRejected(rej),
   });
 
   const zoneStyle = useMemo(() => {

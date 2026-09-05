@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 
 import {
   fetchDocuments,
@@ -8,13 +8,12 @@ import {
   streamAsk,
   uploadDocument,
   type AskEvent,
-  type DocumentItem,
   type RAGSource,
 } from '../lib/api'
 import { loadSettings } from '../lib/settings'
 import { errMsg, isAbortError } from '../lib/utils'
 
-export function DocumentsPage() {
+export default function DocumentsPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
   const [indexing, setIndexing] = useState<Record<number, boolean>>({})

@@ -6,7 +6,6 @@ import {
   fetchBooks,
   fetchQuiz,
   submitQuizAttempt,
-  type BookItem,
   type QuizBankItem,
 } from "../lib/api";
 import { errMsg } from "../lib/utils";

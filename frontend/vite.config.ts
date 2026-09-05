@@ -63,11 +63,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@radix-ui/react-icons', '@radix-ui/react-label', 'clsx'],
-          editor: ['@tiptap/react', '@tiptap/starter-kit'],
-          charts: ['recharts'],
+        manualChunks(id: string) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor'
+            if (id.includes('@radix-ui') || id.includes('clsx')) return 'ui'
+            if (id.includes('@tiptap')) return 'editor'
+            if (id.includes('recharts')) return 'charts'
+          }
         },
       },
     },

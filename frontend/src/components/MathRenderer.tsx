@@ -10,7 +10,7 @@ import type { Components } from "react-markdown";
  * `inlineMath`/`math` ألياسات من remark-math — لا تُعرّف في نوع react-markdown
  * الافتراضي، لذا نُلصق الكائن بـ `as Components`.
  */
-export const MathRenderer = ({ content }: { content: string }) => (
+export const MathRenderer = ({ content, isUser: _isUser }: { content: string; isUser?: boolean }) => (
   <ReactMarkdown
     remarkPlugins={[remarkMath]}
     rehypePlugins={[rehypeKatex]}
