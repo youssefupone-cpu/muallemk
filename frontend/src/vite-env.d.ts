@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 /**
  * Type declarations للوحدات الافتراضية (virtual modules).
  * - `virtual:pwa-register/react` يُزوّده vite-plugin-pwa في وقت البناء.
@@ -19,15 +17,4 @@ declare module "virtual:pwa-register/react" {
     onRegistered?: (reg: ServiceWorkerRegistration) => void;
     onRegisterError?: (e: Error) => void;
   }): UseRegisterSWResult;
-}
-
-/** Chrome beforeinstallprompt — غير موجود في lib.dom القياسي. */
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
-  prompt(): Promise<void>;
-}
-
-interface WindowEventMap {
-  beforeinstallprompt: BeforeInstallPromptEvent;
 }

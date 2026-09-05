@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppLayout } from "../components/layout/AppLayout";
@@ -6,6 +6,7 @@ import {
   fetchBooks,
   fetchQuiz,
   submitQuizAttempt,
+  type BookItem,
   type QuizBankItem,
 } from "../lib/api";
 import { errMsg } from "../lib/utils";
@@ -31,7 +32,7 @@ function expectedText(item: QuizBankItem): string {
   return item.answer;
 }
 
-export default function DiagnosticPage() {
+export function DiagnosticPage() {
   const [bookId, setBookId] = useState<number | "">("");
   const [rows, setRows] = useState<Row[]>([]);
   const [idx, setIdx] = useState(0);
@@ -48,9 +49,7 @@ export default function DiagnosticPage() {
   });
 
   const books = qc.data ?? [];
-  useEffect(() => {
-    if (qc.isError) setError(errMsg(qc.error));
-  }, [qc.isError, qc.error]);
+  if (qc.isError) setError(errMsg(qc.error));
 
   const start = async () => {
     if (!bookId) return;

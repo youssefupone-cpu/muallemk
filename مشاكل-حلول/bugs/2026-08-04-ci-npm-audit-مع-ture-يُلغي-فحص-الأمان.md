@@ -3,7 +3,7 @@
 - **التاريخ**: 2026-08-04
 - **النوع**: bug (security / CI)
 - **الوضعية**: reviewer
-- **الحالة**: fixed
+- **الحالة**: open
 - **الأولوية**: critical
 - **الملف**: `.github/workflows/ci.yml:71`
 
@@ -44,6 +44,3 @@
 
 - [npm audit docs](https://docs.npmjs.com/cli/v10/commands/npm-audit)
 - [GitHub Actions: Security hardening for workflows](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions)
-
-## سجل
-- 2026-09-05: حُدّثت الحالة إلى `fixed` بعد إصلاح شامل في جلسة Arena.

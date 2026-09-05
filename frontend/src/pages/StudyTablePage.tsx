@@ -15,7 +15,7 @@ interface PluginUiItem extends PluginItem {
   ui?: { schema?: { items?: { properties?: Record<string, { type?: string; enum?: string[] }> } } }
 }
 
-export default function StudyTablePage() {
+export function StudyTablePage() {
   const [plugin, setPlugin] = useState<PluginItem | null>(null)
   const [fields, setFields] = useState<FieldSpec[]>([])
   const [rows, setRows] = useState<Record<string, string>[]>([])

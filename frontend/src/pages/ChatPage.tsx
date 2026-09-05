@@ -8,7 +8,7 @@ import { fetchConversation, fetchHistory } from '../lib/api'
 import { loadSettings } from '../lib/settings'
 import { useChatStore } from '../store/chat'
 
-export default function ChatPage() {
+export function ChatPage() {
   const {
     conversations,
     setConversations,

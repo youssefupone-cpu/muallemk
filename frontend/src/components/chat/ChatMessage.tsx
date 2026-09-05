@@ -19,7 +19,7 @@ export function ChatMessage({ message }: { message: Message }) {
           isUser ? 'bg-slate-200 text-slate-900' : 'bg-indigo-600 text-white',
         )}
       >
-        <MathRenderer content={message.content || '…'} />
+        <MathRenderer content={message.content || '…'} isUser={isUser} />
       </div>
       {isUser && (
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200" aria-hidden="true">

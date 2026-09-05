@@ -1,8 +1,4 @@
 @import "tailwindcss";
-@import "katex/dist/katex.min.css";
-
-/* dark variant لـ Tailwind v4 — class على <html> */
-@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Cairo", "Segoe UI", system-ui, sans-serif;
@@ -16,9 +12,4 @@ body {
   font-family: var(--font-sans);
   background-color: #f8fafc;
   color: #0f172a;
-}
-
-.dark body {
-  background-color: #020617;
-  color: #f8fafc;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppLayout } from "../components/layout/AppLayout";
@@ -6,6 +6,7 @@ import {
   fetchBooks,
   fetchQuiz,
   submitQuizAttempt,
+  type BookItem,
   type QuizBankItem,
 } from "../lib/api";
 import { errMsg } from "../lib/utils";
@@ -41,7 +42,7 @@ function expectedText(item: QuizBankItem): string {
       : item.answer;
 }
 
-export default function ExamPage() {
+export function ExamPage() {
   const [bookId, setBookId] = useState<number | "">("");
   const [phase, setPhase] = useState<Phase>("pick");
   const [qa, setQa] = useState<QA[]>([]);
@@ -60,9 +61,7 @@ export default function ExamPage() {
   });
 
   const books = qc.data ?? [];
-  useEffect(() => {
-    if (qc.isError) setError(errMsg(qc.error));
-  }, [qc.isError, qc.error]);
+  if (qc.isError) setError(errMsg(qc.error));
 
   const startExam = useCallback(async () => {
     if (!bookId) return;

@@ -5,18 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.2.0] — 2026-09-05
-
-### Fixed (hardening pass)
-- Backend install: setuptools package discovery (`app` only) — `pip install -e .` works again.
-- SQLite schema: full books/quiz/activity tables + safe column migrations.
-- Upload DoS: 50MB read cap + image pixel limit; documents upload rate-limited.
-- Rate limits on chat, RAG ask, websearch, plugin invoke/report.
-- API keys via `x-provider-key` header on LLM routes; plugin invoke action allowlist.
-- Docker: non-root users, resource limits, selective env vars (no full `.env` dump), backend binds `0.0.0.0` in-container.
-- Frontend: missing deps (`sonner`, `react-dropzone`, `katex`, `rehype-sanitize`), books API client, routes (`/books` `/exam` `/diagnostic` 404), ThemeProvider/ErrorBoundary, PWA theme bootstrap, XSS sanitize, Vite 8 manualChunks, npm audit clean.
-
-## [0.2.0-rc.1] — 2026-08-04
+## [0.2.0] — 2026-08-04
 
 ### Added
 - **PWA دون اتصال**: `vite-plugin-pwa` + Service Worker يخزن الكتب والنماذج (P4-237).

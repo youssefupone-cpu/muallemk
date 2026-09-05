@@ -3,7 +3,7 @@
 - **التاريخ**: 2026-08-04
 - **النوع**: bug (frontend / SSE / crash)
 - **الوضعية**: matching
-- **الحالة**: fixed
+- **الحالة**: open
 - **الأولوية**: high
 - **الملف**: `frontend/src/lib/api.ts:191-196`
 
@@ -66,6 +66,3 @@ function readSSE(reader: ReadableStreamDefaultReader<Uint8Array>) {
 ## المراجع
 
 - [Server-Sent Events spec — error handling](https://html.spec.whatwg.org/multipage/server-sent-events.html)
-
-## سجل
-- 2026-09-05: حُدّثت الحالة إلى `fixed` بعد إصلاح شامل في جلسة Arena.

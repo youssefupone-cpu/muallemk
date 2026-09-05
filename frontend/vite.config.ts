@@ -7,7 +7,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    // React Compiler (P1-5) — API v6: react() + babel({ presets: [reactCompilerPreset()] })
+    // React Compiler (P1-5) — API v6 الموّثق في README @vitejs/plugin-react.
+    // v6 حذف خيار `babel` من react()؛ الآن: react() + babel({ presets: [reactCompilerPreset()] })
+    // (يتطلب @rolldown/plugin-babel@0.1.7 + babel-plugin-react-compiler + @babel/core@7.29.7).
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
@@ -15,18 +17,20 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         runtimeCaching: [
+          // محاضرات/بيانات محلية ثابتة
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/books'),
             handler: 'NetworkFirst',
             options: { cacheName: 'books', expiration: { maxEntries: 50 } },
           },
+          // RAG ask — fallback للشبكة
           {
             urlPattern: ({ url }) => url.pathname === '/api/rag/ask',
             handler: 'NetworkOnly',
           },
         ],
       },
-      includeAssets: ['favicon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ["favicon.svg", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
         name: 'معلّمك — مساعد الدراسة',
         short_name: 'معلمك',
@@ -55,31 +59,15 @@ export default defineConfig({
       },
     },
   },
-  // Code-splitting عبر function form (متوافق مع Vite 8 / Rolldown)
+  // Code-splitting إضافي — فصل vendor و shadcn/ui عن الـ chunks الخاصة بالصفحات (P4-240)
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (
-              id.includes('react-dom') ||
-              id.includes('/react/') ||
-              id.includes('react-router')
-            ) {
-              return 'vendor'
-            }
-            if (
-              id.includes('react-markdown') ||
-              id.includes('remark-math') ||
-              id.includes('rehype-') ||
-              id.includes('/katex')
-            ) {
-              return 'markdown'
-            }
-            if (id.includes('@tanstack') || id.includes('zustand')) {
-              return 'query'
-            }
-          }
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@radix-ui/react-icons', '@radix-ui/react-label', 'clsx'],
+          editor: ['@tiptap/react', '@tiptap/starter-kit'],
+          charts: ['recharts'],
         },
       },
     },

@@ -38,30 +38,20 @@ export function DragDropUpload({
   maxSize = 10 * 1024 * 1024, // 10 MB افتراضي
 }: Props) {
   const [rejected, setRejected] = useState<FileRejection[]>([]);
-  const [busy, setBusy] = useState(false);
 
   const onDrop = async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
     setRejected([]);
-    setBusy(true);
-    let ok = 0;
     try {
-      for (const file of acceptedFiles) {
-        await uploadDocument(file);
-        ok += 1;
-        toast(`جارٍ الرفع… ${ok}/${acceptedFiles.length}`, {
-          id: "upload-progress",
-        });
-      }
-      toast.success(`تم رفع ${ok} ملف بنجاح`);
-      onUploaded(ok);
+      const uploaded = await uploadDocument(acceptedFiles, (pct) => {
+        toast(`جارٍ الرفع… ${pct}%`, { id: "upload-progress" });
+      });
+      toast.success(`تم رفع ${uploaded.length} ملف بنجاح`);
+      onUploaded(uploaded.length);
     } catch (err) {
       toast.error(errMsg(err));
       onError?.(errMsg(err));
-      if (ok > 0) onUploaded(ok);
-    } finally {
-      setBusy(false);
     }
   };
 
@@ -72,11 +62,10 @@ export function DragDropUpload({
     isDragAccept,
     isDragReject,
   } = useDropzone({
-    onDrop,
+    onDrop: onDrop,
     accept,
     maxFiles,
     maxSize,
-    disabled: busy,
     onDropRejected: (rej) => setRejected(rej),
   });
 
@@ -84,26 +73,22 @@ export function DragDropUpload({
     if (isDragReject) return "border-red-400 bg-red-50";
     if (isDragAccept) return "border-green-400 bg-green-50";
     if (isDragActive) return "border-blue-400 bg-blue-50";
-    return "border-slate-300 bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-900";
+    return "border-slate-300 bg-slate-50 hover:border-slate-400";
   }, [isDragAccept, isDragReject, isDragActive]);
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+      <label className="block text-sm font-medium text-slate-700">
         رفع ملفات (PDF/Word/نص/صورة OCR — حتى {maxFiles} ملفات)
       </label>
 
       <div
         {...getRootProps()}
-        className={`cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors ${zoneStyle} ${
-          busy ? "opacity-60 pointer-events-none" : ""
-        }`}
+        className={`cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors ${zoneStyle}`}
       >
-        <input {...getInputProps()} />
-        <Upload className="mx-auto h-8 w-8 text-slate-400" aria-hidden="true" />
-        {busy ? (
-          <p className="mt-2 text-sm text-slate-600">جارٍ الرفع…</p>
-        ) : isDragActive ? (
+        <input {...getInputProps()} disabled={false} />
+        <Upload className="mx-auto h-8 w-8 text-slate-400" />
+        {isDragActive ? (
           <p className="mt-2 text-sm text-slate-600">اترك الملفات هنا…</p>
         ) : (
           <p className="mt-2 text-sm text-slate-600">
@@ -118,8 +103,8 @@ export function DragDropUpload({
       {rejected.length > 0 && (
         <ul className="list-disc list-inside space-y-1 text-sm text-red-600">
           {rejected.map(({ file, errors }) => (
-            <li key={file.name}>
-              {file.name} — {errors.map((e) => e.message).join("؛ ")}
+            <li key={file.path}>
+              {file.path} — {errors.map((e) => e.message).join("؛ ")}
             </li>
           ))}
         </ul>

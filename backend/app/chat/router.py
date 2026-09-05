@@ -3,7 +3,7 @@
 import json
 import logging
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, HTTPException
 from sse_starlette.sse import EventSourceResponse
 
 from app.chat.models import (
@@ -15,7 +15,6 @@ from app.chat.models import (
 from app.chat.service import chat_stream, get_conversation, get_messages, list_conversations
 from app.core.config import get_settings
 from app.core.llm.factory import get_llm
-from app.core.rate_limit import rate_limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -24,19 +23,13 @@ settings = get_settings()
 
 
 @router.post("", response_class=EventSourceResponse)
-async def chat(
-    request: ChatRequest,
-    x_provider_key: str | None = Header(default=None, alias="x-provider-key"),
-    _: None = Depends(rate_limiter(20)),  # استهلاك LLM — حد 20 طلب/دقيقة
-):
+async def chat(request: ChatRequest):
     """بث استجابة النموذج عبر SSE — قطعة قطعة."""
     provider = request.provider or settings.default_provider
     model = request.model or settings.default_model
     base_url = request.base_url or (settings.ollama_base_url if provider == "ollama" else None)
-    # المفتاح من الـ header يُفضَّل على body (تجنّب تسريبه في سجلات الـ body)
-    api_key = x_provider_key or request.api_key
     try:
-        llm = get_llm(provider, model, base_url=base_url, api_key=api_key)
+        llm = get_llm(provider, model, base_url=base_url, api_key=request.api_key)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 

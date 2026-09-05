@@ -56,20 +56,11 @@ def _extension(filename: str) -> str:
     return Path(filename).suffix.lower()
 
 
-# حد قراءة الملفات في الذاكرة (DoS) — 50MB
-MAX_READ_BYTES = 50 * 1024 * 1024
-# حد أبعاد الصورة لمنع decompression bombs
-MAX_IMAGE_PIXELS = 40_000_000  # ~40MP
-
-
 def _extract_images(files: list[UploadFile]) -> str:
     """OCR للصور عبر tesseract (ara + eng)."""
     try:
         import pytesseract
         from PIL import Image
-
-        # حماية من decompression bomb
-        Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
     except ImportError:
         logger.warning("pytesseract/Pillow غير متوفرين — تخطّي OCR الصور")
         return ""
@@ -78,12 +69,6 @@ def _extract_images(files: list[UploadFile]) -> str:
     for f in files:
         try:
             img = Image.open(f.file)
-            img.load()  # يفعّل فحص MAX_IMAGE_PIXELS
-            w, h = img.size
-            if w * h > MAX_IMAGE_PIXELS:
-                logger.warning("صورة ضخمة تُرفض: %s (%sx%s)", f.filename, w, h)
-                parts.append("")
-                continue
             text = pytesseract.image_to_string(img, lang="ara+eng")
             parts.append(text.strip())
         except Exception:
@@ -95,14 +80,9 @@ def _extract_images(files: list[UploadFile]) -> str:
 
 
 def extract_text(upload: UploadFile) -> str:
-    """يحوّل ملفاً واحداً إلى نص ماركداون/خام.
-
-    يقرأ حتى MAX_READ_BYTES + 1؛ إن تجاوز → يرفض (DoS).
-    """
+    """يحوّل ملفاً واحداً إلى نص ماركداون/خام."""
     ext = _extension(upload.filename or "")
-    raw = upload.file.read(MAX_READ_BYTES + 1)
-    if len(raw) > MAX_READ_BYTES:
-        raise ValueError(f"الملف يتجاوز {MAX_READ_BYTES // (1024 * 1024)}MB")
+    raw = upload.file.read()
 
     if not raw:
         return ""

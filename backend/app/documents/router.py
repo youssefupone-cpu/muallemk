@@ -1,9 +1,8 @@
 """مسارات المستندات — الاستيراد والتحويل والإدارة."""
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.core.db import get_connection
-from app.core.rate_limit import rate_limiter
 from app.documents.models import DocumentContent, DocumentOut
 from app.documents.service import (
     IMAGE_EXTENSIONS,
@@ -16,7 +15,6 @@ from app.rag.router import get_engine
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 PREVIEW_LEN = 120
-MAX_DOC_MB = 50  # حد حجم المستند (DoS) — P2-19 / bug 2026-08-02
 
 
 def _row_to_doc(row) -> DocumentOut:
@@ -29,37 +27,14 @@ def _row_to_doc(row) -> DocumentOut:
     )
 
 
-def _check_size(file: UploadFile, max_mb: int = MAX_DOC_MB) -> None:
-    """يفحص حجم الملف قبل قراءته بالكامل — يرفع 413 عند التجاوز."""
-    try:
-        file.file.seek(0, 2)
-        size = file.file.tell()
-        file.file.seek(0)
-    except Exception:
-        return  # بعض الـ streams لا تدعم seek — نكمل
-    if size and size > max_mb * 1024 * 1024:
-        raise HTTPException(
-            status_code=413,
-            detail=f"الملف يتجاوز {max_mb}MB — ارفع ملفاً أصغر",
-        )
-
-
 @router.post("", response_model=DocumentOut, status_code=200)
-async def upload_document(
-    file: UploadFile = File(...),
-    _: None = Depends(rate_limiter(30)),
-):
+async def upload_document(file: UploadFile = File(...)):
     """يرفع ملفاً ويستخرج نصه (markitdown أو OCR للصور) ثم يخزّنه."""
     ext = _extension(file.filename or "")
     if ext not in SUPPORTED_EXTENSIONS:
         raise HTTPException(status_code=415, detail=f"نوع الملف غير مدعوم: {ext or 'غير معروف'}")
 
-    _check_size(file)
-
-    try:
-        content = extract_text(file)
-    except ValueError as e:
-        raise HTTPException(status_code=413, detail=str(e)) from e
+    content = extract_text(file)
     if not content.strip():
         raise HTTPException(status_code=422, detail="تعذّر استخراج نص من الملف")
 

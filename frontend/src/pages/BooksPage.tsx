@@ -40,17 +40,13 @@ const STATUS_LABEL: Record<string, string> = {
 function Flashcards({ lesson }: { lesson: LessonContent }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const cards = useMemo(() => {
-    const fromGlossary = lesson.glossary.map((g) => ({
-      front: String(g.term ?? ""),
-      back: String(g.definition ?? ""),
-    }));
-    const fromQuestions = lesson.questions.map((q) => ({
-      front: String(q.question ?? ""),
-      back: String(q.answer ?? ""),
-    }));
-    return [...fromGlossary, ...fromQuestions].filter((c) => c.front);
-  }, [lesson]);
+  const cards = useMemo(
+    () => [
+      ...lesson.glossary.map((g) => ({ front: g.term, back: g.definition })),
+      ...lesson.questions.map((q) => ({ front: q.question, back: q.answer })),
+    ],
+    [lesson],
+  );
   if (cards.length === 0) return null;
   const card = cards[index % cards.length];
   return (
@@ -197,7 +193,7 @@ function ExerciseRenderer({ e, i }: { e: Record<string, unknown>; i: number }) {
   );
 }
 
-export default function BooksPage() {
+export function BooksPage() {
   const [selected, setSelected] = useState<BookDetail | null>(null);
   const [lesson, setLesson] = useState<LessonContent | null>(null);
   const [error, setError] = useState("");
@@ -660,10 +656,10 @@ export default function BooksPage() {
                       className="rounded-lg border border-blue-100 bg-blue-50/50 p-3"
                     >
                       <div className="font-semibold text-blue-700">
-                        {String(g.term ?? "")}
+                        {g.term}
                       </div>
                       <div className="mt-1 text-sm text-slate-600">
-                        {String(g.definition ?? "")}
+                        {g.definition}
                       </div>
                     </div>
                   ))}

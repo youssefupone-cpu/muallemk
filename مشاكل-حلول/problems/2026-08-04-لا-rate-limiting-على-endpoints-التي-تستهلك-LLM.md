@@ -3,7 +3,7 @@
 - **التاريخ**: 2026-08-04
 - **النوع**: problem (security / abuse / cost-control)
 - **الوضعية**: reviewer
-- **الحالة**: fixed
+- **الحالة**: open
 - **الأولوية**: high
 - **الملفات المتأثرة**:
   - `backend/app/books/router.py:172` (`/books/{book_id}/analyze`)
@@ -77,6 +77,3 @@ async def analyze_book(
 
 - [FastAPI + SlowAPI rate limiting patterns](https://slowapi.readthedocs.io/)
 - [OWASP: API5:2023 Broken Function Level Authorization](https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/)
-
-## سجل
-- 2026-09-05: حُدّثت الحالة إلى `fixed` بعد إصلاح شامل في جلسة Arena.
